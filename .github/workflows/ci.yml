@@ -1,0 +1,32 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        crystal: [1.10.1, latest, nightly]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
+
+      - name: Download source
+        uses: actions/checkout@v4
+
+      - name: Install shards
+        run: shards install
+
+      - name: Run specs
+        run: crystal spec
+
+      - name: Check formatting
+        run: crystal tool format --check
+        if: matrix.crystal == 'latest' && matrix.os == 'ubuntu-latest'
