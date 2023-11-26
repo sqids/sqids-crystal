@@ -1,0 +1,10 @@
+name: sqids
+version: 0.1.0
+description: Generate YouTube-like ids from numbers.
+homepage: https://sqids.org/crystal
+repository: https://github.com/sqids/sqids-crystal
+license: MIT
+authors:
+  - Sqids Maintainers
+
+crystal: '>= 1.10.1'
