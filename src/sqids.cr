@@ -129,7 +129,7 @@ class Sqids
 
     return ret if id.empty?
 
-    alphabet_chars = @alphabet.chars
+    alphabet_chars = @alphabet.chars.to_set
     id.chars.each do |c|
       return ret unless alphabet_chars.includes?(c)
     end
