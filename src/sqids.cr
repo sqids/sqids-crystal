@@ -133,7 +133,7 @@ class Sqids
     id
   end
 
-  def to_id(num : UInt, alphabet : String) : String
+  private def to_id(num : UInt, alphabet : String) : String
     id = [] of Char
     chars = alphabet.chars
 
@@ -147,12 +147,12 @@ class Sqids
     id.join
   end
 
-  def to_number(id, alphabet) : UInt64
+  private def to_number(id, alphabet) : UInt64
     chars = alphabet.chars
     id.chars.reduce(0_u64) { |a, v| (a * chars.size) + chars.index(v).as(Int32) }
   end
 
-  def blocked_id?(id)
+  private def blocked_id?(id)
     id = id.downcase
 
     @blocklist.any? do |word|
@@ -168,7 +168,7 @@ class Sqids
     end
   end
 
-  def contains_multibyte_chars(input_str)
+  private def contains_multibyte_chars(input_str)
     input_str.bytesize != input_str.size
   end
 end
