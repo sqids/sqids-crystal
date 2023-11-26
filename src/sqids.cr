@@ -1,3 +1,16 @@
+# A [Sqids](https://sqids.org/) encoder and decoder.
+#
+# Example:
+#
+# ```
+# sqids = Sqids.new
+#
+# id = sqids.encode([1, 2, 3])
+# # => "86Rf07"
+#
+# numbers = sqids.decode(id)
+# # => [1, 2, 3]
+# ```
 class Sqids
   private DEFAULT_ALPHABET   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   private DEFAULT_MIN_LENGTH = 0_u8
@@ -9,6 +22,43 @@ class Sqids
   @min_length : Int32
   @blocklist : Set(String)
 
+  # Creates a Sqids encoder and decoder.
+  #
+  # Can take a custom alphabet.
+  # By default, `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"` is used.
+  #
+  # ```
+  # sqids = Sqids.new(alphabet: "abc")
+  #
+  # id = sqids.encode([1, 2, 3])
+  # # => "aacacbaa"
+  #
+  # numbers = sqids.decode(id)
+  # # => [1, 2, 3]
+  # ```
+  #
+  # Can take a minimum length,
+  # which defaults to 0 (no minimum length).
+  #
+  # ```
+  # sqids = Sqids.new(min_length: 10_u8)
+  #
+  # sqids.encode([1, 2, 3])
+  # # => "86Rf07xd4z"
+  # ```
+  #
+  # Can take a custom blocklist of words to avoid.
+  # Defaults to a long list of words.
+  #
+  # ```
+  # sqids = Sqids.new(blocklist: Set.new(%w[86Rf07]))
+  #
+  # id = sqids.encode([1, 2, 3])
+  # # => "se8ojk"
+  #
+  # numbers = sqids.decode(id)
+  # # => [1, 2, 3]
+  # ```
   def initialize(alphabet : String = DEFAULT_ALPHABET, min_length : UInt8 = DEFAULT_MIN_LENGTH, blocklist : Set(String) = DEFAULT_BLOCKLIST)
     raise ArgumentError.new("Alphabet cannot contain multibyte characters") if contains_multibyte_chars(alphabet)
     raise ArgumentError.new("Alphabet size must be at least 3") if alphabet.size < 3
@@ -27,20 +77,53 @@ class Sqids
     @blocklist = filtered_blocklist
   end
 
-  def encode(numbers : Array(UInt)) : String
+  # Encode an array of numbers into a Sqid string.
+  #
+  # If the array is empty, an empty string is returned.
+  #
+  # ```
+  # sqids = Sqids.new
+  #
+  # sqids.encode([1, 2, 3] of UInt64)
+  # # => "86Rf07"
+  # ```
+  def encode(numbers : Array(UInt8 | UInt16 | UInt32 | UInt64)) : String
+    # Note that we don't use the `UInt` alias in the type above because
+    # it doesn't expand in the API documentation. It's easier to understand
+    # the full type union than a private alias.
     return "" if numbers.empty?
     encode_numbers(numbers)
   end
 
+  # Like `encode`, but takes signed integers.
+  #
+  # If any of the numbers are negative, an `OverflowError` is raised.
+  #
+  # ```
+  # sqids = Sqids.new
+  #
+  # sqids.encode([1, 2, 3])
+  # # => "86Rf07"
+  # ```
   def encode(numbers : Array(Int8 | Int16 | Int32 | Int64)) : String
     return "" if numbers.empty?
     uints = numbers.map do |n|
-      raise OverflowError.new("Number must be positive") if n < 0
+      raise OverflowError.new("Number must be positive") if n.negative?
       UInt64.new(n)
     end
     encode_numbers(uints)
   end
 
+  # Decode a Sqid string into an array of numbers.
+  #
+  # If the argument is an empty string, an empty array is returned.
+  #
+  # ```
+  # sqids = Sqids.new
+  #
+  # sqids.decode("86Rf07")
+  # # => [1, 2, 3]
+  # ```
   def decode(id : String) : Array(UInt64)
     ret = [] of UInt64
 
