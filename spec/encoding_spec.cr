@@ -97,6 +97,27 @@ describe Sqids do
     sqids.encode([] of UInt64).should eq("")
   end
 
+  it "encoding various UInt types" do
+    sqids = Sqids.new
+
+    sqids.encode([12, 34] of UInt8).should eq("2kYx")
+    sqids.encode([12, 34] of UInt16).should eq("2kYx")
+    sqids.encode([12, 34] of UInt32).should eq("2kYx")
+    sqids.encode([12, 34] of UInt64).should eq("2kYx")
+  end
+
+  it "encoding various Int types" do
+    sqids = Sqids.new
+
+    sqids.encode([12, 34] of Int8).should eq("2kYx")
+    sqids.encode([12, 34] of Int16).should eq("2kYx")
+    sqids.encode([12, 34] of Int32).should eq("2kYx")
+    sqids.encode([12, 34] of Int64).should eq("2kYx")
+
+    expect_raises(OverflowError) { sqids.encode([-1] of Int8) }
+    expect_raises(OverflowError) { sqids.encode([-1] of Int32) }
+  end
+
   it "decoding empty string" do
     sqids = Sqids.new
     sqids.decode("").should eq([] of UInt64)
